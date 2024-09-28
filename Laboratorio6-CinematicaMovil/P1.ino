@@ -73,7 +73,7 @@ void loop() {
   vw = vySeq[seq];
   if(seq < nseq){
     // Calculate target angular velocities
-    CalculateVelAng(/* COMPLETE HERE */,/* COMPLETE HERE */,/* COMPLETE HERE */);
+    CalculateVelAng(vx,vy,vw);
     for(int k = 0; k < NMOTORS; k++){
       // Compute input motor signal
       float pwr = vt[k]*maxPWM/maxRPM;
@@ -111,10 +111,17 @@ void CalculateVelAng(double vx, double vy, double vw) {
     - vy: Linear velocity in Y axis, in m/s.
     - vw: Angular velocity in Z axis, in rad/s.
   */
-  double w[] = {0, 0, 0, 0};
   // Calculate velocity of each motor in rad/s in w[] (from inverse kinematics)
   
-  /* COMPLETE HERE */
+  double arreglo_velocidad[3][1] = {vx,vy,vw};
+  double jacobiano_seudoinverso[4][3]={
+                                        {1, -1, -(a_b)},
+                                        {1,  1,  (a_b)},
+                                        {1,  1, -(a_b)},
+                                        {1, -1,  (a_b)}
+  };
+
+  double w[4]= {(vx-vy-vw*a_b)/R,(vx+vy+vw*a_b)/R,(vx+vy-vw*a_b)/R,(vx-vy+vw*a_b)/R};
 
   for (int i = 0; i < NMOTORS; i++) {
     sgn[i] = w[i] / fabs(w[i]); 

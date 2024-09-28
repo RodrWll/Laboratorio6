@@ -53,7 +53,7 @@ class SimplePID{
       eintegral = -umax/ki;
     }
     // Control signal
-    float u = kp * e + kd * dedt + ki * eintegral;
+    float u = kp * e + kd * dedt + ki * eintegral;  
     pwr = (int) fabs(u);
     // Truncate signal
     if (pwr > umax) {

@@ -50,17 +50,17 @@ float T      = 1000; // Time of each sequence in ms
 float waitT  = 500;  // Waiting time of each sequence in ms
 
 // Velocity target sequences
-float vxSeq[] = {/* COMPLETE HERE */}; // X Axis linear velocity sequence
-float vySeq[] = {/* COMPLETE HERE */}; // Y Axis linear velocity sequence
-float vwSeq[] = {/* COMPLETE HERE */}; // Z Axis angular velocity sequence
+float vxSeq[] = {0.1,-0.1,0,0,0.1,0.1,-0.1,-0.1}; // X Axis linear velocity sequence
+float vySeq[] = {0,0,0.1,-0.1,0.1,-0.1,0.1,-0.1}; // Y Axis linear velocity sequence
+float vwSeq[] = {0,0,0,0,0,0,0,0,-pi/5,pi/5}; // Z Axis angular velocity sequence
 
 // Dimensions
-const double a_b = /* COMPLETE HERE */; // a+b
-const double R = /* COMPLETE HERE */;   // radius
+const double a_b = (0.21 + 0.195)/2; // a+b
+const double R = 0.04;   // radius
 
 // Maximun values
-float maxPWM = /* COMPLETE HERE */; // Input value
-float maxRPM = /* COMPLETE HERE */; // Input value
+float maxPWM = 255; // Input value
+float maxRPM = 90; // Input value
 
 /*********************************************************************/
 /*****************************   LOOP   ******************************/
@@ -68,9 +68,9 @@ float maxRPM = /* COMPLETE HERE */; // Input value
 
 void loop() {
   // Set target velocity
-  vx = /* COMPLETE HERE */; 
-  vy = /* COMPLETE HERE */; 
-  vw = /* COMPLETE HERE */;
+  vx = vxSeq[seq]; 
+  vy = vySeq[seq]; 
+  vw = vySeq[seq];
   if(seq < nseq){
     // Calculate target angular velocities
     CalculateVelAng(/* COMPLETE HERE */,/* COMPLETE HERE */,/* COMPLETE HERE */);

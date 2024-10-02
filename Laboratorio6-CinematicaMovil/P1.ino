@@ -8,7 +8,7 @@
 /*********************************************************************/
 /***************************   VARIABLES   ***************************/
 /*********************************************************************/
-
+//Holaaaaaaa 
 // Number of motors
 #define NMOTORS 4
 // Pins of each motor
@@ -50,17 +50,17 @@ float T      = 1000; // Time of each sequence in ms
 float waitT  = 500;  // Waiting time of each sequence in ms
 
 // Velocity target sequences
-float vxSeq[] = {/* COMPLETE HERE */}; // X Axis linear velocity sequence
-float vySeq[] = {/* COMPLETE HERE */}; // Y Axis linear velocity sequence
-float vwSeq[] = {/* COMPLETE HERE */}; // Z Axis angular velocity sequence
+float vxSeq[] = {0.1,-0.1,0,0,0.1,0.1,-0.1,-0.1}; // X Axis linear velocity sequence
+float vySeq[] = {0,0,0.1,-0.1,0.1,-0.1,0.1,-0.1}; // Y Axis linear velocity sequence
+float vwSeq[] = {0,0,0,0,0,0,0,0,-pi/5,pi/5}; // Z Axis angular velocity sequence
 
 // Dimensions
-const double a_b = /* COMPLETE HERE */; // a+b
-const double R = /* COMPLETE HERE */;   // radius
+const double a_b = (0.21 + 0.195)/2; // a+b
+const double R = 0.04;   // radius
 
 // Maximun values
-float maxPWM = /* COMPLETE HERE */; // Input value
-float maxRPM = /* COMPLETE HERE */; // Input value
+float maxPWM = 255; // Input value
+float maxRPM = 90; // Input value
 
 /*********************************************************************/
 /*****************************   LOOP   ******************************/
@@ -68,12 +68,12 @@ float maxRPM = /* COMPLETE HERE */; // Input value
 
 void loop() {
   // Set target velocity
-  vx = /* COMPLETE HERE */; 
-  vy = /* COMPLETE HERE */; 
-  vw = /* COMPLETE HERE */;
+  vx = vxSeq[seq]; 
+  vy = vySeq[seq]; 
+  vw = vySeq[seq];
   if(seq < nseq){
     // Calculate target angular velocities
-    CalculateVelAng(/* COMPLETE HERE */,/* COMPLETE HERE */,/* COMPLETE HERE */);
+    CalculateVelAng(vx,vy,vw);
     for(int k = 0; k < NMOTORS; k++){
       // Compute input motor signal
       float pwr = vt[k]*maxPWM/maxRPM;
@@ -111,10 +111,17 @@ void CalculateVelAng(double vx, double vy, double vw) {
     - vy: Linear velocity in Y axis, in m/s.
     - vw: Angular velocity in Z axis, in rad/s.
   */
-  double w[] = {0, 0, 0, 0};
   // Calculate velocity of each motor in rad/s in w[] (from inverse kinematics)
   
-  /* COMPLETE HERE */
+  double arreglo_velocidad[3][1] = {vx,vy,vw};
+  double jacobiano_seudoinverso[4][3]={
+                                        {1, -1, -(a_b)},
+                                        {1,  1,  (a_b)},
+                                        {1,  1, -(a_b)},
+                                        {1, -1,  (a_b)}
+  };
+
+  double w[4]= {(vx-vy-vw*a_b)/R,(vx+vy+vw*a_b)/R,(vx+vy-vw*a_b)/R,(vx-vy+vw*a_b)/R};
 
   for (int i = 0; i < NMOTORS; i++) {
     sgn[i] = w[i] / fabs(w[i]); 

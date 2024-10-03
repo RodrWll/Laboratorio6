@@ -11,10 +11,11 @@
 //Holaaaaaaa 
 // Number of motors
 #define NMOTORS 4
+#define pi 3.14159265359
 // Pins of each motor
 const int enc[] = {4, 5, 8, 13};  // Encoder pins
-const int DIR[] = {2, 7, 9, 12};  // Direction pins
-const int pwm[] = {3, 6, 10, 11}; // PWM pins
+const int DIR[] = {7, 2, 9, 12};  // Direction pins
+const int pwm[] = {6, 3, 10, 11}; // PWM pins
 
 /*********************************************************************/
 /*****************************   SETUP   *****************************/
@@ -44,15 +45,15 @@ double vx = 0, vy = 0, vw = 0;
 /*----------------------- YOU CAN MODIFY THIS -----------------------*/
 
 // Sequences variables
-int nseq     = 10;   // Number of sequences
+int nseq     = 11;   // Number of sequences
 int seq      = 0;    // Counter sequence variable
 float T      = 1000; // Time of each sequence in ms
 float waitT  = 500;  // Waiting time of each sequence in ms
 
 // Velocity target sequences
-float vxSeq[] = {0.1,-0.1,0,0,0.1,0.1,-0.1,-0.1}; // X Axis linear velocity sequence
-float vySeq[] = {0,0,0.1,-0.1,0.1,-0.1,0.1,-0.1}; // Y Axis linear velocity sequence
-float vwSeq[] = {0,0,0,0,0,0,0,0,-pi/5,pi/5}; // Z Axis angular velocity sequence
+float vxSeq[11] = {0,0.1,-0.1,0,0,0.1,0.1,-0.1,-0.1,0,0}; // X Axis linear velocity sequence
+float vySeq[11] = {0,0,0,0.1,-0.1,0.1,-0.1,0.1,-0.1,0,0}; // Y Axis linear velocity sequence
+float vwSeq[11] = {0,0,0,0,0,0,0,0,0,-0.62831853071,0.62831853071}; // Z Axis angular velocity sequence
 
 // Dimensions
 const double a_b = (0.21 + 0.195)/2; // a+b
@@ -70,8 +71,8 @@ void loop() {
   // Set target velocity
   vx = vxSeq[seq]; 
   vy = vySeq[seq]; 
-  vw = vySeq[seq];
-  if(seq < nseq){
+  vw = vwSeq[seq];
+ if(seq < nseq){
     // Calculate target angular velocities
     CalculateVelAng(vx,vy,vw);
     for(int k = 0; k < NMOTORS; k++){
@@ -91,10 +92,10 @@ void loop() {
     StopMotors();
     delay(waitT);
     seq++;
-  }
+ }
   else{
-    StopMotors();
-  }
+  StopMotors();
+ }
 }
 
 /*********************************************************************/
@@ -121,7 +122,7 @@ void CalculateVelAng(double vx, double vy, double vw) {
                                         {1, -1,  (a_b)}
   };
 
-  double w[4]= {(vx-vy-vw*a_b)/R,(vx+vy+vw*a_b)/R,(vx+vy-vw*a_b)/R,(vx-vy+vw*a_b)/R};
+  double w[4]= {(vx-vy - vw*a_b)/R,(vx+vy + vw*a_b)/R,(vx+vy - vw*a_b)/R,(vx-vy + vw*a_b)/R};
 
   for (int i = 0; i < NMOTORS; i++) {
     sgn[i] = w[i] / fabs(w[i]); 
@@ -147,7 +148,8 @@ void setMotor(int dir, int pwmVal, int pwmch, int dirch) {
     - dirch: Direction pin channel.
   */
   analogWrite(pwmch, pwmVal);
-  if(dirch==12 || dirch==7){
+  if(dirch==2 || dirch==12
+  ){
     if (dir == 1) {
       digitalWrite(dirch, LOW);
     } else if (dir == 0) {

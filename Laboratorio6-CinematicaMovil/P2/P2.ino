@@ -74,7 +74,7 @@ class SimplePID{
 // Pins
 const int enc[] = {4, 5, 8, 13};
 const int DIR[] = {2, 7, 9, 12};
-const int pwm[] = {3, 6, 10, 11};
+const int pwm[] = {6, 3, 10, 11};
 
 // Globals
 float vel[]   = {0.0, 0.0, 0.0, 0.0};
@@ -113,11 +113,11 @@ void setup() {
     pinMode(DIR[k], OUTPUT);
   }
   // PID gains for each motor
-  pid[0].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, 255, vminLim);
+  pid[0].setParams(0.091836735, 0.09,0.023427738, 255, vminLim);
   //pid[1].setParams(6.5, 0.2, 0.5, 255, vminLim);
-  pid[1].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, 255, vminLim);
-  pid[2].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, 255, vminLim);
-  pid[3].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, 255, vminLim);
+  pid[1].setParams(0.085279188,0.084,0.021644464, 255, vminLim);
+  pid[2].setParams(0.085279188,0.084,0.021644464, 255, vminLim);
+  pid[3].setParams(0.079187817,0.078,0.020098431, 255, vminLim);
   // Activate interrupts
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[0]), readEncoder<0>, CHANGE);
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[1]), readEncoder<1>, CHANGE);
@@ -133,14 +133,14 @@ void setup() {
 /*----------------------- YOU CAN MODIFY THIS -----------------------*/
 
 // Target variables for control
-double vx = /* COMPLETE HERE */;
-double vy = /* COMPLETE HERE */;
-double vw = /* COMPLETE HERE */;
+double vx = 0.15;
+double vy = 0;
+double vw = 0;
 // Time duration
-double time = /* COMPLETE HERE */;
+double time = 6666.7;
 // Robot dimentions
-const double a_b = /* COMPLETE HERE */;   // a+b
-const double R = /* COMPLETE HERE */;     // radius
+const double a_b = (0.21 + 0.195)/2;   // a+b
+const double R = 0.04;     // radius
 
 /*********************************************************************/
 /*****************************   LOOP   ******************************/
@@ -168,20 +168,20 @@ void loop() {
     // Get current velocity in rpm
     for(int k = 0; k < NMOTORS; k++){
       // Calculate velocity in rpm
-      vel[k] = velEncSlack[k]/deltaT/ppr[k]*60.0;
+      vel[k] = (velEncSlack[k]/deltaT/ppr[k])*(60.0);
     }
 
     // Move robot
     if(t1-t0 < time){
-      CalculateVelAng(/* COMPLETE HERE */,/* COMPLETE HERE */,/* COMPLETE HERE */);
+      CalculateVelAng(vx,vy,vw);
       for(int k = 0; k < NMOTORS; k++){
         int pwr;
         // Get control signal from PID algorithm 
-        pid[k].evalu(/* COMPLETE HERE */, /* COMPLETE HERE */, deltaT, pwr);
+        pid[k].evalu(vel[k],vt[k], deltaT, pwr);
         // signal the motor
         setMotor(dir[k], pwr, pwm[k], DIR[k]);
-        Serial.println(vel[k])
-        Serial.println(vt[k])
+        Serial.println(vel[k]);
+        Serial.println(vt[k]);
       }
     }
     else{
@@ -205,10 +205,8 @@ void CalculateVelAng(double vx, double vy, double vw) {
     - vy: Linear velocity in Y axis, in m/s.
     - vw: Angular velocity in Z axis, in rad/s.
   */
-  double w[] = {0, 0, 0, 0};
+  double w[4]= {(vx-vy - vw*a_b)/R,(vx+vy + vw*a_b)/R,(vx+vy - vw*a_b)/R,(vx-vy + vw*a_b)/R};
   // Angular velocity of each motor in rad/s (from the first exercise)
-
-  /* COMPLETE HERE */
 
   for (int i = 0; i < NMOTORS; i++) {
     sgn[i] = w[i] / fabs(w[i]); 
@@ -234,7 +232,7 @@ void setMotor(int dir, int pwmVal, int pwmch, int dirch) {
     - dirch: Direction pin channel.
   */
   analogWrite(pwmch, pwmVal);
-  if(dirch==12 || dirch==7){
+  if(dirch==12 || dirch==2){
     if (dir == 1) {
       digitalWrite(dirch, LOW);
     } else if (dir == 0) {

@@ -75,7 +75,7 @@ class SimplePID{
 // Pins of each motor
 const int enc[] = {4, 5, 8, 13};  // Encoder pins
 const int DIR[] = {2, 7, 9, 12};  // Direction pins
-const int pwm[] = {3, 6, 10, 11}; // PWM pins
+const int pwm[] = {6, 3, 10, 11}; // PWM pins
 
 // Globals
 int posPrev[] = {0, 0, 0, 0};
@@ -124,10 +124,10 @@ void setup() {
     pinMode(DIR[k], OUTPUT);
   }
   // PID gains for each motor
-  pid[0].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, vminLim);
-  pid[1].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, vminLim);
-  pid[2].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, vminLim);
-  pid[3].setParams(/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */, vminLim);
+  pid[0].setParams(1.285714286, 0.09, 7.438016529, vminLim);
+  pid[1].setParams(1.4, 0.084, 5.833333333, vminLim);
+  pid[2].setParams(1.4, 0.084, 5.833333333, vminLim);
+  pid[3].setParams(1.3, 0.078, 5.416666667, vminLim);
 
   // Activate interrupts
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[0]), readEncoder<0>, CHANGE);
@@ -157,18 +157,20 @@ void setup() {
 
 /*----------------------- YOU CAN MODIFY THIS -----------------------*/
 
+#define PI 3.14159265359
+
 // Sequences variables
 int nseq      = 3; // Number of sequences
 int seq       = 0; // Counter sequence variable
-float T[]     = {/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */}; // Time of each sequence
+float T[]     = {2, 5, 3}; // Time of each sequence
 // Velocity target sequences
-float vxSeq[] = {/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */}; // Target relative linear velocity of the platform fixed frame in X axis
-float vySeq[] = {/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */}; // Target relative linear velocity of the platform fixed frame in Y axis
-float vwSeq[] = {/* COMPLETE HERE */, /* COMPLETE HERE */, /* COMPLETE HERE */}; // Target relative angular velocity of the platform fixed frame in Z axis
+float vxSeq[] = {0, 0.15, 0}; // Target relative linear velocity of the platform fixed frame in X axis
+float vySeq[] = {0, 0, 0}; // Target relative linear velocity of the platform fixed frame in Y axis
+float vwSeq[] = {-PI/6, 0, 0}; // Target relative angular velocity of the platform fixed frame in Z axis
 // Robot dimentions
-const double a_b = /* COMPLETE HERE */;   // a+b
-const double R = /* COMPLETE HERE */;     // radius
-const double l_a_b = /* COMPLETE HERE */; // 1/(a+b)
+const double a_b = (0.21 + 0.195)/2;   // a+b
+const double R = 0.04;     // radius
+const double l_a_b = 1/a_b; // 1/(a+b)
 
 /*********************************************************************/
 /*****************************   LOOP   ******************************/
@@ -208,11 +210,11 @@ void loop() {
 
     // Motion Sequences
     if(seq<nseq){
-      vx = /* COMPLETE HERE */; 
-      vy = /* COMPLETE HERE */; 
-      vw = /* COMPLETE HERE */;
+      vx = vxSeq[seq]; 
+      vy = vySeq[seq]; 
+      vw = vwSeq[seq];
       // Compute target velocity for each motor
-      CalculateVelAng(/* COMPLETE HERE */,/* COMPLETE HERE */,/* COMPLETE HERE */);
+      CalculateVelAng(vx,vy,vw);
       for(int k = 0; k < NMOTORS; k++){
         int pwr;
         // Obtaine control signal from PID algorithm 
@@ -282,8 +284,19 @@ void CalculateVelAng(double vx, double vy, double vw) {
   */
   double w[] = {0, 0, 0, 0};
   // Angular velocity of each motor in rad/s (from the first exercise)
+  double arreglo_velocidad[3] = {vx,vy,vw};
+  double jacobiano_seudoinverso[4][3]={
+                                        {1, -1, -(a_b)},
+                                        {1,  1,  (a_b)},
+                                        {1,  1, -(a_b)},
+                                        {1, -1,  (a_b)}
+  };
 
-  /* COMPLETE HERE */
+  for (int i = 0; i < 4; i++){
+    for (int k = 0; k < 3; k++){
+      w[i] += arreglo_velocidad[k]*jacobiano_seudoinverso[i][k]
+    }
+  }
 
   for (int i = 0; i < NMOTORS; i++) {
     sgnPrev[i] = sgn[i];

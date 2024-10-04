@@ -113,11 +113,11 @@ void setup() {
     pinMode(DIR[k], OUTPUT);
   }
   // PID gains for each motor
-  pid[0].setParams(0.091836735, 0.09,0.023427738, 255, vminLim);
+  pid[0].setParams(3, 25,0.09, 255, vminLim);
   //pid[1].setParams(6.5, 0.2, 0.5, 255, vminLim);
-  pid[1].setParams(0.085279188,0.084,0.021644464, 255, vminLim);
-  pid[2].setParams(0.085279188,0.084,0.021644464, 255, vminLim);
-  pid[3].setParams(0.079187817,0.078,0.020098431, 255, vminLim);
+  pid[1].setParams(2.4,17.1429,0.084, 255, vminLim);
+  pid[2].setParams(2.4,17.1429,0.084, 255, vminLim);
+  pid[3].setParams(2.2286,15.9183,0.078, 255, vminLim);
   // Activate interrupts
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[0]), readEncoder<0>, CHANGE);
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[1]), readEncoder<1>, CHANGE);

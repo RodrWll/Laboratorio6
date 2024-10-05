@@ -113,11 +113,19 @@ void setup() {
     pinMode(DIR[k], OUTPUT);
   }
   // PID gains for each motor
+<<<<<<< HEAD
+  pid[0].setParams(1.285714286,0.09,7.438016529, 255, vminLim);
+  //pid[1].setParams(6.5, 0.2, 0.5, 255, vminLim);
+  pid[1].setParams(1.4,0.084,5.833333333, 255, vminLim);
+  pid[2].setParams(1.4,0.084,5.833333333, 255, vminLim);
+  pid[3].setParams(1.3,0.078,5.416666667, 255, vminLim);
+=======
   pid[0].setParams(3, 25,0.09, 255, vminLim);
   //pid[1].setParams(6.5, 0.2, 0.5, 255, vminLim);
   pid[1].setParams(2.4,17.1429,0.084, 255, vminLim);
   pid[2].setParams(2.4,17.1429,0.084, 255, vminLim);
   pid[3].setParams(2.2286,15.9183,0.078, 255, vminLim);
+>>>>>>> 0b41f0ba8cec71436f918639c46f19baff804c12
   // Activate interrupts
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[0]), readEncoder<0>, CHANGE);
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[1]), readEncoder<1>, CHANGE);
@@ -137,7 +145,7 @@ double vx = 0.15;
 double vy = 0;
 double vw = 0;
 // Time duration
-double time = 6666.7;
+double time = 6.67;
 // Robot dimentions
 const double a_b = (0.21 + 0.195)/2;   // a+b
 const double R = 0.04;     // radius

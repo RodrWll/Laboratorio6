@@ -74,7 +74,7 @@ class SimplePID{
 #define NMOTORS 4
 // Pins of each motor
 const int enc[] = {4, 5, 8, 13};  // Encoder pins
-const int DIR[] = {2, 7, 9, 12};  // Direction pins
+const int DIR[] = {7, 2, 9, 12};  // Direction pins
 const int pwm[] = {6, 3, 10, 11}; // PWM pins
 
 // Globals
@@ -124,10 +124,10 @@ void setup() {
     pinMode(DIR[k], OUTPUT);
   }
   // PID gains for each motor
-  pid[0].setParams(1.285714286, 0.09, 7.438016529, vminLim);
-  pid[1].setParams(1.4, 0.084, 5.833333333, vminLim);
-  pid[2].setParams(1.4, 0.084, 5.833333333, vminLim);
-  pid[3].setParams(1.3, 0.078, 5.416666667, vminLim);
+  pid[0].setParams(1.285714286, 0.09, 7.438016529, 255, vminLim);
+  pid[1].setParams(1.4, 0.084, 5.833333333, 255, vminLim);
+  pid[2].setParams(1.4, 0.084, 5.833333333, 255, vminLim);
+  pid[3].setParams(1.3, 0.078, 5.416666667, 255, vminLim);
 
   // Activate interrupts
   attachPinChangeInterrupt(digitalPinToPinChangeInterrupt(enc[0]), readEncoder<0>, CHANGE);
@@ -164,7 +164,7 @@ int nseq      = 3; // Number of sequences
 int seq       = 0; // Counter sequence variable
 float T[]     = {2, 5, 3}; // Time of each sequence
 // Velocity target sequences
-float vxSeq[] = {0, 0.15, 0}; // Target relative linear velocity of the platform fixed frame in X axis
+float vxSeq[] = {0, 0, 0.15}; // Target relative linear velocity of the platform fixed frame in X axis
 float vySeq[] = {0, 0, 0}; // Target relative linear velocity of the platform fixed frame in Y axis
 float vwSeq[] = {-PI/6, 0, 0}; // Target relative angular velocity of the platform fixed frame in Z axis
 // Robot dimentions
@@ -201,7 +201,7 @@ void loop() {
       // Calculate velocity in rpm
       vel[k] = velEncSlack[k]/deltaT/ppr[k]*60.0;
       // Calculate velocity and differential velocity in rad/s (use sgn[] and sgnPrev[] variables)
-      meanVelAng[k] = /* COMPLETE HERE */;
+      meanVelAng[k] = (sgn[k] * velAng[k] + sgnPrev[k] * velAng[k]) / 2.0; /*CORREGIR*/
       velAng[k] = vel[k]*PI/30;
     }
 
@@ -218,7 +218,7 @@ void loop() {
       for(int k = 0; k < NMOTORS; k++){
         int pwr;
         // Obtaine control signal from PID algorithm 
-        pid[k].evalu(/* COMPLETE HERE */, /* COMPLETE HERE */, deltaT, pwr);
+        pid[k].evalu( vel[k], vt[k] , deltaT, pwr); /*CORREGIR*/
         // signal the motor
         setMotor(dir[k], pwr, pwm[k], DIR[k]);
       }
@@ -249,7 +249,15 @@ void BilinealEstimation(double deltaT){
   ct = cos(theta); st = sin(theta);
   // Bilineal numerical estimation (use meanVelAng[] variable)
 
-  /* COMPLETE HERE */
+  // Bilineal numerical estimation
+  double vX_robot = R * (meanVelAng[0] + meanVelAng[1] + meanVelAng[2] + meanVelAng[3]) / 4.0; // Linear velocity in X direction
+  double vY_robot = R * (-meanVelAng[0] + meanVelAng[1] + meanVelAng[2] - meanVelAng[3]) / 4.0; // Linear velocity in Y direction
+  double omega = R * (-meanVelAng[0] + meanVelAng[1] - meanVelAng[2] + meanVelAng[3]) / (4.0 * a_b); // Angular velocity
+  
+  // Update position and orientation using bilineal method
+  x += (vX_robot * ct - vY_robot * st) * deltaT;
+  y += (vX_robot * st + vY_robot * ct) * deltaT;
+  theta += omega * deltaT;
 
   // Update previous values
   xPrev = x;
@@ -282,7 +290,7 @@ void CalculateVelAng(double vx, double vy, double vw) {
     - vy: Linear velocity in Y axis, in m/s.
     - vw: Angular velocity in Z axis, in rad/s.
   */
-  double w[] = {0, 0, 0, 0};
+
   // Angular velocity of each motor in rad/s (from the first exercise)
   double arreglo_velocidad[3] = {vx,vy,vw};
   double jacobiano_seudoinverso[4][3]={
@@ -292,11 +300,7 @@ void CalculateVelAng(double vx, double vy, double vw) {
                                         {1, -1,  (a_b)}
   };
 
-  for (int i = 0; i < 4; i++){
-    for (int k = 0; k < 3; k++){
-      w[i] += arreglo_velocidad[k]*jacobiano_seudoinverso[i][k]
-    }
-  }
+  double w[4]= {(vx-vy - vw*a_b)/R,(vx+vy + vw*a_b)/R,(vx+vy - vw*a_b)/R,(vx-vy + vw*a_b)/R};
 
   for (int i = 0; i < NMOTORS; i++) {
     sgnPrev[i] = sgn[i];
@@ -323,7 +327,7 @@ void setMotor(int dir, int pwmVal, int pwmch, int dirch) {
     - dirch: Direction pin channel.
   */
   analogWrite(pwmch, pwmVal);
-  if(dirch==12 || dirch==7){
+  if(dirch==12 || dirch==2){
     if (dir == 1) {
       digitalWrite(dirch, LOW);
     } else if (dir == 0) {
